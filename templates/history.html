@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Scan History | Phishing URL Detection System{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="hero-badge">
+        <i class="fa-solid fa-clock-rotate-left"></i> SQLite Forensic Repository
+    </div>
+    <h1 class="page-title">Scan <span class="cyber-accent">History</span></h1>
+    <p class="page-subtitle">
+        Persistent audit log of all investigated URLs, risk scores, model confidences, and extracted lexical vectors.
+    </p>
+</section>
+
+<!-- History Controls Bar: Search, Filters, and Clear Action -->
+<section class="history-controls-section">
+    <div class="cyber-card">
+        <div class="history-filter-bar">
+            <!-- Search Form -->
+            <form action="{{ url_for('history') }}" method="GET" class="history-search-form" id="historySearchForm">
+                <div class="search-input-group">
+                    <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input 
+                        type="text" 
+                        name="q" 
+                        id="historySearchInput" 
+                        class="cyber-input" 
+                        placeholder="Search by URL or domain name..." 
+                        value="{{ query or '' }}"
+                    >
+                    {% if filter_type %}
+                        <input type="hidden" name="filter" value="{{ filter_type }}">
+                    {% endif %}
+                    <button type="submit" class="cyber-btn btn-secondary btn-sm" id="btnSearchSubmit">
+                        <span>Search</span>
+                    </button>
+                    {% if query %}
+                        <a href="{{ url_for('history', filter=filter_type) }}" class="cyber-btn btn-outline btn-sm" title="Clear Search">
+                            <i class="fa-solid fa-xmark"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+
+            <!-- Filter Badges -->
+            <div class="filter-pills-group">
+                <a href="{{ url_for('history', q=query) }}" class="filter-pill {% if not filter_type %}active{% endif %}">
+                    All Records ({{ total_count }})
+                </a>
+                <a href="{{ url_for('history', q=query, filter='phishing') }}" class="filter-pill pill-danger {% if filter_type == 'phishing' %}active{% endif %}">
+                    <i class="fa-solid fa-biohazard"></i> Phishing
+                </a>
+                <a href="{{ url_for('history', q=query, filter='safe') }}" class="filter-pill pill-safe {% if filter_type == 'safe' %}active{% endif %}">
+                    <i class="fa-solid fa-shield-heart"></i> Likely Safe
+                </a>
+                <a href="{{ url_for('history', q=query, filter='high') }}" class="filter-pill {% if filter_type == 'high' %}active{% endif %}">
+                    High Risk
+                </a>
+                <a href="{{ url_for('history', q=query, filter='medium') }}" class="filter-pill {% if filter_type == 'medium' %}active{% endif %}">
+                    Medium Risk
+                </a>
+                <a href="{{ url_for('history', q=query, filter='low') }}" class="filter-pill {% if filter_type == 'low' %}active{% endif %}">
+                    Low Risk
+                </a>
+            </div>
+
+            <!-- Clear All Button -->
+            <div class="clear-history-action">
+                <button type="button" class="cyber-btn btn-danger-outline btn-sm" id="btnClearHistoryTrigger" onclick="openClearModal()">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Clear All History</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- History Data Table -->
+<section class="history-table-section mt-4">
+    <div class="cyber-card">
+        <div class="table-responsive">
+            <table class="cyber-table" id="historyTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Target URL</th>
+                        <th>Domain / Host</th>
+                        <th>Verdict</th>
+                        <th>Risk Score</th>
+                        <th>Confidence</th>
+                        <th>Timestamp</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if scans %}
+                        {% for scan in scans %}
+                            <tr id="scan-row-{{ scan.id }}">
+                                <td class="font-mono">#{{ scan.id }}</td>
+                                <td class="table-url-cell font-mono" title="{{ scan.url }}">
+                                    <span class="url-truncate">{{ scan.url }}</span>
+                                </td>
+                                <td class="font-mono">{{ scan.domain or 'Unknown' }}</td>
+                                <td>
+                                    {% if scan.result == 'Likely Phishing' %}
+                                        <span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Phishing</span>
+                                    {% elif scan.result == 'Suspicious' %}
+                                        <span class="badge badge-warning"><i class="fa-solid fa-circle-exclamation"></i> Suspicious</span>
+                                    {% else %}
+                                        <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Likely Safe</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="risk-bar-container">
+                                        <div class="risk-bar-fill {% if scan.risk_score > 70 %}fill-danger{% elif scan.risk_score > 30 %}fill-warning{% else %}fill-success{% endif %}" style="width: {{ scan.risk_score }}%;"></div>
+                                        <span class="risk-bar-text">{{ scan.risk_score }}/100</span>
+                                    </div>
+                                </td>
+                                <td>{{ scan.confidence }}%</td>
+                                <td class="text-muted font-mono">{{ scan.scan_timestamp }}</td>
+                                <td>
+                                    <div class="actions-group">
+                                        <!-- Re-analyze / View Details -->
+                                        <a href="{{ url_for('analyze', url=scan.url) }}" class="action-btn btn-inspect" title="Inspect in Analyzer">
+                                            <i class="fa-solid fa-microscope"></i>
+                                        </a>
+                                        <!-- Delete Record Form -->
+                                        <form action="{{ url_for('api_delete_scan', scan_id=scan.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete scan record #{{ scan.id }}?');">
+                                            <button type="submit" class="action-btn btn-delete" title="Delete record">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="empty-table-state">
+                                <i class="fa-solid fa-inbox empty-icon"></i>
+                                <p>No matching scan records found.</p>
+                                {% if query or filter_type %}
+                                    <a href="{{ url_for('history') }}" class="cyber-btn btn-secondary btn-sm mt-2">Reset Filters</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if total_pages > 1 %}
+            <div class="pagination-bar mt-4">
+                <span class="pagination-info">Page {{ current_page }} of {{ total_pages }} ({{ total_count }} total entries)</span>
+                <div class="pagination-links">
+                    {% if current_page > 1 %}
+                        <a href="{{ url_for('history', page=current_page-1, q=query, filter=filter_type) }}" class="page-link">&laquo; Prev</a>
+                    {% endif %}
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p == current_page %}
+                            <span class="page-link active">{{ p }}</span>
+                        {% elif p <= 3 or p >= total_pages - 2 or (p >= current_page - 1 and p <= current_page + 1) %}
+                            <a href="{{ url_for('history', page=p, q=query, filter=filter_type) }}" class="page-link">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if current_page < total_pages %}
+                        <a href="{{ url_for('history', page=current_page+1, q=query, filter=filter_type) }}" class="page-link">Next &raquo;</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Clear All History Confirmation Modal -->
+<div class="cyber-modal" id="clearHistoryModal">
+    <div class="modal-backdrop" onclick="closeClearModal()"></div>
+    <div class="modal-dialog">
+        <div class="cyber-card modal-card">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <i class="fa-solid fa-triangle-exclamation modal-icon danger-text"></i>
+                    <h3 class="modal-title">Confirm Database Purge</h3>
+                </div>
+                <button type="button" class="modal-close" onclick="closeClearModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently clear the entire URL scan history?</p>
+                <p class="text-muted mt-2">This will wipe all stored investigations from <code>database/scans.db</code>. This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="cyber-btn btn-secondary" onclick="closeClearModal()">Cancel</button>
+                <form action="{{ url_for('api_clear_history') }}" method="POST">
+                    <button type="submit" class="cyber-btn btn-danger">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Confirm Delete All</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function openClearModal() {
+        const modal = document.getElementById('clearHistoryModal');
+        if (modal) modal.classList.add('show');
+    }
+    function closeClearModal() {
+        const modal = document.getElementById('clearHistoryModal');
+        if (modal) modal.classList.remove('show');
+    }
+</script>
+{% endblock %}

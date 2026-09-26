@@ -1,0 +1,40 @@
+{
+    "model_type": "RandomForestClassifier",
+    "n_estimators": 100,
+    "features": [
+        "url_length",
+        "domain_length",
+        "num_dots",
+        "num_hyphens",
+        "num_special_chars",
+        "num_digits",
+        "num_subdomains",
+        "has_ip_address",
+        "has_at_symbol",
+        "suspicious_word_count",
+        "has_https",
+        "num_params",
+        "path_length",
+        "domain_age_heuristic",
+        "is_shortened",
+        "suspicious_tld",
+        "digit_ratio",
+        "entropy"
+    ],
+    "accuracy": 1.0,
+    "precision_phishing": 1.0,
+    "recall_phishing": 1.0,
+    "f1_phishing": 1.0,
+    "total_records": 258,
+    "top_features": {
+        "has_https": 0.3864,
+        "suspicious_word_count": 0.1804,
+        "domain_length": 0.121,
+        "entropy": 0.0702,
+        "domain_age_heuristic": 0.0632,
+        "suspicious_tld": 0.035,
+        "url_length": 0.0348,
+        "is_shortened": 0.0177
+    },
+    "trained_timestamp": "2026-09-25 12:23:06"
+}

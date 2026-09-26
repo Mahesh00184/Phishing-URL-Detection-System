@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}URL Threat Analyzer | Phishing URL Detection System{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="hero-badge">
+        <i class="fa-solid fa-microchip"></i> Static Lexical & Heuristic Inspection
+    </div>
+    <h1 class="page-title">URL Threat <span class="cyber-accent">Analyzer</span></h1>
+    <p class="page-subtitle">
+        Deep lexical decomposition and multi-feature machine learning classification. The submitted URL is parsed in isolated local memory and is <strong>never requested or visited over the network</strong>.
+    </p>
+</section>
+
+<!-- Main Input Card -->
+<section class="analyzer-input-section">
+    <div class="cyber-card">
+        <form action="{{ url_for('analyze') }}" method="POST" class="url-input-form" id="fullAnalyzerForm">
+            <label for="analyzerUrlInput" class="input-label">
+                <i class="fa-solid fa-terminal"></i> Enter Target URL to Inspect:
+            </label>
+            <div class="input-glow-group">
+                <span class="input-icon"><i class="fa-solid fa-globe"></i></span>
+                <input 
+                    type="text" 
+                    name="url" 
+                    id="analyzerUrlInput" 
+                    class="cyber-input" 
+                    placeholder="https://example.com/login or http://192.168.1.1/update" 
+                    value="{{ url_input or '' }}" 
+                    required 
+                    autocomplete="off"
+                >
+                <button type="submit" class="cyber-btn btn-primary" id="btnRunAnalysis">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Analyze URL</span>
+                </button>
+            </div>
+        </form>
+
+        {% if error_msg %}
+            <div class="cyber-alert alert-danger mt-3" role="alert">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>{{ error_msg }}</span>
+            </div>
+        {% endif %}
+
+        <!-- Quick Test Chips -->
+        <div class="sample-chips-container mt-3">
+            <span class="chips-label"><i class="fa-solid fa-vial"></i> Test Scenarios:</span>
+            <button type="button" class="sample-chip chip-safe" onclick="setAnalyzeUrl('https://www.google.com/search?q=cybersecurity')">
+                <i class="fa-solid fa-shield-check"></i> Clean Google
+            </button>
+            <button type="button" class="sample-chip chip-phish" onclick="setAnalyzeUrl('http://192.168.1.105/paypal/signin.php?cmd=login_submit')">
+                <i class="fa-solid fa-network-wired"></i> Raw IP Address Lure
+            </button>
+            <button type="button" class="sample-chip chip-phish" onclick="setAnalyzeUrl('http://paypal.com.verification-center.account-security.tk/login.php')">
+                <i class="fa-solid fa-triangle-exclamation"></i> Subdomain Masquerade
+            </button>
+            <button type="button" class="sample-chip chip-phish" onclick="setAnalyzeUrl('http://chase.com@secure-banking-portal-session.top/signin')">
+                <i class="fa-solid fa-at"></i> Userinfo @ Deception
+            </button>
+            <button type="button" class="sample-chip chip-suspicious" onclick="setAnalyzeUrl('http://bit.ly/3xSecLoginPayPalUpdate')">
+                <i class="fa-solid fa-compress"></i> Shortener Mask
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Forensic Analysis Results Card (When Available) -->
+{% if result %}
+<section class="analysis-results-section" id="resultsSection">
+    <!-- Top Result Banner Card -->
+    <div class="cyber-card result-card {% if result.risk_level == 'HIGH' %}border-danger{% elif result.risk_level == 'MEDIUM' %}border-warning{% else %}border-success{% endif %}">
+        <div class="result-header-flex">
+            <div class="result-status-block">
+                <div class="status-indicator-badge {% if result.risk_level == 'HIGH' %}status-high{% elif result.risk_level == 'MEDIUM' %}status-med{% else %}status-low{% endif %}">
+                    {% if result.risk_level == 'HIGH' %}
+                        <i class="fa-solid fa-triangle-exclamation status-icon"></i>
+                        <div>
+                            <span class="status-sub">STATUS:</span>
+                            <h2 class="status-main">⚠️ PHISHING URL DETECTED</h2>
+                        </div>
+                    {% elif result.risk_level == 'MEDIUM' %}
+                        <i class="fa-solid fa-circle-exclamation status-icon"></i>
+                        <div>
+                            <span class="status-sub">STATUS:</span>
+                            <h2 class="status-main">⚠️ SUSPICIOUS URL / CAUTION</h2>
+                        </div>
+                    {% else %}
+                        <i class="fa-solid fa-circle-check status-icon"></i>
+                        <div>
+                            <span class="status-sub">STATUS:</span>
+                            <h2 class="status-main">✅ SAFE URL (LIKELY SAFE)</h2>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="result-url-display font-mono">
+                    <span class="label">Target:</span>
+                    <span class="val">{{ result.raw_url }}</span>
+                </div>
+            </div>
+
+            <!-- Risk Score Gauge -->
+            <div class="risk-gauge-box">
+                <div class="gauge-circle {% if result.risk_level == 'HIGH' %}gauge-danger{% elif result.risk_level == 'MEDIUM' %}gauge-warning{% else %}gauge-success{% endif %}">
+                    <div class="gauge-inner">
+                        <span class="gauge-score">{{ result.risk_score }}</span>
+                        <span class="gauge-max">/ 100</span>
+                    </div>
+                </div>
+                <div class="gauge-meta">
+                    <span class="gauge-level-label {% if result.risk_level == 'HIGH' %}danger-text{% elif result.risk_level == 'MEDIUM' %}warning-text{% else %}safe-text{% endif %}">
+                        {{ result.risk_level }} RISK
+                    </span>
+                    <span class="gauge-confidence">Confidence: <strong>{{ result.confidence }}%</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Progress Bar -->
+        <div class="risk-score-bar-wrapper">
+            <div class="score-bar-header">
+                <span>Threat Risk Meter (0 = Benign, 100 = Malicious)</span>
+                <span class="score-bar-badge">{{ result.risk_score }} / 100</span>
+            </div>
+            <div class="threat-progress-bar">
+                <div 
+                    class="threat-progress-fill {% if result.risk_level == 'HIGH' %}fill-danger{% elif result.risk_level == 'MEDIUM' %}fill-warning{% else %}fill-success{% endif %}" 
+                    style="width: {{ result.risk_score }}%;"
+                ></div>
+            </div>
+            <div class="threat-thresholds">
+                <span class="threshold low">0–30: LOW RISK</span>
+                <span class="threshold med">31–70: MEDIUM RISK</span>
+                <span class="threshold high">71–100: HIGH RISK</span>
+            </div>
+        </div>
+
+        <!-- Detection Reasons Alert Panel -->
+        <div class="reasons-panel mt-4">
+            <h3 class="panel-title"><i class="fa-solid fa-triangle-exclamation cyber-accent"></i> Detection Reasons & Indicators</h3>
+            <ul class="reasons-list">
+                {% for reason in result.reasons %}
+                    <li class="reason-item {% if result.risk_level == 'HIGH' %}reason-danger{% elif result.risk_level == 'MEDIUM' %}reason-warning{% else %}reason-safe{% endif %}">
+                        <i class="fa-solid fa-caret-right"></i>
+                        <span>{{ reason }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Security Recommendations -->
+        <div class="recommendations-panel mt-4">
+            <h3 class="panel-title"><i class="fa-solid fa-shield-virus cyber-accent"></i> Recommended Defensive Actions</h3>
+            <div class="recs-grid">
+                {% for rec in result.recommendations %}
+                    <div class="rec-card">
+                        <i class="fa-solid fa-shield-check rec-icon"></i>
+                        <p>{{ rec }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Extracted Feature Vector Grid -->
+    <div class="cyber-card mt-4">
+        <div class="card-header-flex">
+            <div class="card-title-group">
+                <i class="fa-solid fa-cubes-stacked card-icon cyber-accent"></i>
+                <div>
+                    <h3 class="card-title">Extracted Cybersecurity Features (18 Metrics)</h3>
+                    <p class="card-subtitle">Lexical, structural, and heuristic feature vector passed to Random Forest model</p>
+                </div>
+            </div>
+            <span class="badge badge-info"><i class="fa-solid fa-database"></i> Database Logged #{{ result.scan_id }}</span>
+        </div>
+
+        <div class="features-table-wrapper">
+            <table class="cyber-table feature-table">
+                <thead>
+                    <tr>
+                        <th>Feature Name</th>
+                        <th>Extracted Value</th>
+                        <th>Feature Type</th>
+                        <th>Cybersecurity Threat Significance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>URL Length</strong></td>
+                        <td class="font-mono">{{ result.features.url_length }} chars</td>
+                        <td>Structural</td>
+                        <td>Phishers often rely on excessively long URLs to obscure destination tokens or bypass basic filters.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Domain Length</strong></td>
+                        <td class="font-mono">{{ result.features.domain_length }} chars</td>
+                        <td>Structural</td>
+                        <td>Spoofed domains typically incorporate lengthy brand strings and misleading descriptive phrases.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Number of Dots (.)</strong></td>
+                        <td class="font-mono">{{ result.features.num_dots }}</td>
+                        <td>Lexical</td>
+                        <td>Frequent dot delimiters indicate nested subdomains designed to deceive casual inspection.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Number of Hyphens (-)</strong></td>
+                        <td class="font-mono">{{ result.features.num_hyphens }}</td>
+                        <td>Lexical</td>
+                        <td>Adversaries heavily use hyphens for typosquatting (e.g., <code>paypal-security-update.com</code>).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Special Characters</strong></td>
+                        <td class="font-mono">{{ result.features.num_special_chars }}</td>
+                        <td>Lexical</td>
+                        <td>Presence of <code>@ ? = & % _ ~</code> frequently flags obfuscation, credential traps, or query parameters.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Number of Digits</strong></td>
+                        <td class="font-mono">{{ result.features.num_digits }}</td>
+                        <td>Lexical</td>
+                        <td>Numeric sequences in domain names strongly correlate with automated domain generation (DGA).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Subdomains Count</strong></td>
+                        <td class="font-mono">{{ result.features.num_subdomains }}</td>
+                        <td>Structural</td>
+                        <td>More than 2 subdomains frequently signals brand masquerading on third-party dynamic DNS.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IP Address Usage</strong></td>
+                        <td class="font-mono">
+                            {% if result.features.has_ip_address %}
+                                <span class="badge badge-danger">1 (Detected)</span>
+                            {% else %}
+                                <span class="badge badge-success">0 (Domain Name)</span>
+                            {% endif %}
+                        </td>
+                        <td>Host Type</td>
+                        <td>Using raw IPv4/IPv6 addresses avoids domain registration fees and bypasses DNS reputation filters.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Presence of '@' Symbol</strong></td>
+                        <td class="font-mono">
+                            {% if result.features.has_at_symbol %}
+                                <span class="badge badge-danger">1 (Detected)</span>
+                            {% else %}
+                                <span class="badge badge-success">0 (None)</span>
+                            {% endif %}
+                        </td>
+                        <td>Lexical</td>
+                        <td>The <code>@</code> character instructs browsers to treat preceding text as userinfo, disguising real host.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Suspicious Keywords</strong></td>
+                        <td class="font-mono">
+                            <span class="badge {% if result.features.suspicious_word_count > 0 %}badge-warning{% else %}badge-success{% endif %}">
+                                {{ result.features.suspicious_word_count }} matches
+                            </span>
+                        </td>
+                        <td>Semantic</td>
+                        <td>Lures commonly embed terms such as <code>login, verify, secure, banking, update, confirm</code>.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>HTTPS Protocol</strong></td>
+                        <td class="font-mono">
+                            {% if result.features.has_https %}
+                                <span class="badge badge-success">1 (HTTPS TLS)</span>
+                            {% else %}
+                                <span class="badge badge-danger">0 (Insecure HTTP)</span>
+                            {% endif %}
+                        </td>
+                        <td>Protocol</td>
+                        <td>While modern phishing can use free SSL, insecure HTTP for authentication is an immediate red flag.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>URL Parameters Count</strong></td>
+                        <td class="font-mono">{{ result.features.num_params }}</td>
+                        <td>Structural</td>
+                        <td>Dynamic attack kits append victim email tokens, tracking IDs, and session parameters.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Path Length</strong></td>
+                        <td class="font-mono">{{ result.features.path_length }} chars</td>
+                        <td>Structural</td>
+                        <td>Complex nested directory trees are created by automated phishing toolkits (e.g. <code>/webscr/login/</code>).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Domain Age Heuristic</strong></td>
+                        <td class="font-mono">
+                            {% if result.features.domain_age_heuristic == 2 %}
+                                <span class="badge badge-success">Established (Tier 1)</span>
+                            {% elif result.features.domain_age_heuristic == 1 %}
+                                <span class="badge badge-info">Standard TLD</span>
+                            {% else %}
+                                <span class="badge badge-warning">High Risk TLD</span>
+                            {% endif %}
+                        </td>
+                        <td>Heuristic</td>
+                        <td>Evaluates domain reputation locally without requiring paid external WHOIS APIs.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>URL Shortener Service</strong></td>
+                        <td class="font-mono">
+                            {% if result.features.is_shortened %}
+                                <span class="badge badge-warning">1 (Detected Shortener)</span>
+                            {% else %}
+                                <span class="badge badge-success">0 (Standard URL)</span>
+                            {% endif %}
+                        </td>
+                        <td>Anonymity</td>
+                        <td>Shortening redirects (e.g. bit.ly, tinyurl) mask malicious targets from email and SMS security filters.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Suspicious TLD (.tk, .ml, etc.)</strong></td>
+                        <td class="font-mono">
+                            {% if result.features.suspicious_tld %}
+                                <span class="badge badge-danger">1 (.{{ result.features.tld }})</span>
+                            {% else %}
+                                <span class="badge badge-success">0 (.{{ result.features.tld }})</span>
+                            {% endif %}
+                        </td>
+                        <td>Domain</td>
+                        <td>TLDs with free or disposable registration are statistically heavily overrepresented in phishing kits.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Digit-to-Character Ratio</strong></td>
+                        <td class="font-mono">{{ result.features.digit_ratio }}</td>
+                        <td>Statistical</td>
+                        <td>High numeric density reflects synthetic automated domain generation algorithms (DGAs).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Shannon Entropy</strong></td>
+                        <td class="font-mono">{{ result.features.entropy }} bits</td>
+                        <td>Information Theory</td>
+                        <td>Calculates algorithmic randomness. Random obfuscated slugs generate high information entropy.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function setAnalyzeUrl(url) {
+        const input = document.getElementById('analyzerUrlInput');
+        if (input) {
+            input.value = url;
+            input.focus();
+        }
+    }
+</script>
+{% endblock %}

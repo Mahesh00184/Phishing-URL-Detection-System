@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Phishing URL Detection System{% endblock %}
+
+{% block content %}
+<section class="dashboard-hero">
+    <div class="hero-badge">
+        <i class="fa-solid fa-lock"></i> Real-time AI Cybersecurity Defense
+    </div>
+    <h1 class="hero-title">Phishing URL <span class="cyber-accent">Detection System</span></h1>
+    <p class="hero-description">
+        Phishing is a deceptive social engineering attack where adversaries craft spoofed web links to impersonate trusted institutions, stealing sensitive credentials, session tokens, and financial data. Our hybrid engine combines <strong>18 lexical & structural URL heuristics</strong> with a <strong>Random Forest Classifier</strong> to evaluate malicious probability in milliseconds without ever requesting the remote server.
+    </p>
+</section>
+
+<!-- Quick URL Scanner Card -->
+<section class="quick-scanner-section">
+    <div class="cyber-card scanner-card">
+        <div class="card-header-flex">
+            <div class="card-title-group">
+                <i class="fa-solid fa-radar card-icon cyber-accent"></i>
+                <div>
+                    <h2 class="card-title">Quick URL Threat Analysis</h2>
+                    <p class="card-subtitle">Enter any suspicious or unfamiliar web link to evaluate its safety profile</p>
+                </div>
+            </div>
+            <div class="engine-tag">
+                <i class="fa-solid fa-microchip"></i> Local Heuristic + Random Forest
+            </div>
+        </div>
+
+        <form action="{{ url_for('analyze') }}" method="POST" class="url-input-form" id="quickScanForm">
+            <div class="input-glow-group">
+                <span class="input-icon"><i class="fa-solid fa-link"></i></span>
+                <input 
+                    type="text" 
+                    name="url" 
+                    id="quickUrlInput" 
+                    class="cyber-input" 
+                    placeholder="Enter website link, e.g., https://secure-login.paypal.verification.com/signin" 
+                    required 
+                    autocomplete="off"
+                >
+                <button type="submit" class="cyber-btn btn-primary" id="btnAnalyzeQuick">
+                    <i class="fa-solid fa-magnifying-glass-shield"></i>
+                    <span>Analyze URL</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Fast sample test chips -->
+        <div class="sample-chips-container">
+            <span class="chips-label"><i class="fa-solid fa-vial"></i> Quick Test Samples:</span>
+            <button type="button" class="sample-chip chip-safe" onclick="fillQuickUrl('https://www.google.com/search?q=cybersecurity+defense')">
+                <i class="fa-solid fa-check-circle"></i> Legitimate Google
+            </button>
+            <button type="button" class="sample-chip chip-phish" onclick="fillQuickUrl('http://paypal.com.verification-center.account-security.tk/login.php')">
+                <i class="fa-solid fa-triangle-exclamation"></i> Spoofed Subdomain Phish
+            </button>
+            <button type="button" class="sample-chip chip-phish" onclick="fillQuickUrl('http://192.168.1.105/paypal/signin.php?cmd=login_submit')">
+                <i class="fa-solid fa-network-wired"></i> Raw IP Address Phish
+            </button>
+            <button type="button" class="sample-chip chip-suspicious" onclick="fillQuickUrl('http://bit.ly/3xSecLoginPayPalUpdate')">
+                <i class="fa-solid fa-compress"></i> Shortened URL
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Cybersecurity Metrics Grid -->
+<section class="metrics-section">
+    <div class="section-heading">
+        <h2><i class="fa-solid fa-chart-pie"></i> Real-time Security Metrics</h2>
+        <span class="heading-tag">Persistent SQLite Telemetry</span>
+    </div>
+
+    <div class="metrics-grid">
+        <!-- Total Scans -->
+        <div class="metric-card card-total">
+            <div class="metric-icon-box">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div class="metric-info">
+                <span class="metric-label">Total URLs Analyzed</span>
+                <span class="metric-value" id="statTotalScans">{{ stats.total_scans }}</span>
+            </div>
+            <div class="metric-trend">Lifetime Records</div>
+        </div>
+
+        <!-- Phishing Detected -->
+        <div class="metric-card card-phish">
+            <div class="metric-icon-box">
+                <i class="fa-solid fa-biohazard"></i>
+            </div>
+            <div class="metric-info">
+                <span class="metric-label">Phishing URLs Detected</span>
+                <span class="metric-value danger-glow" id="statPhishing">{{ stats.phishing_count }}</span>
+            </div>
+            <div class="metric-trend danger-text">Malicious Flags</div>
+        </div>
+
+        <!-- Likely Safe -->
+        <div class="metric-card card-safe">
+            <div class="metric-icon-box">
+                <i class="fa-solid fa-shield-heart"></i>
+            </div>
+            <div class="metric-info">
+                <span class="metric-label">Safe URLs Verified</span>
+                <span class="metric-value safe-glow" id="statSafe">{{ stats.safe_count }}</span>
+            </div>
+            <div class="metric-trend safe-text">Low Risk Profile</div>
+        </div>
+
+        <!-- High Risk -->
+        <div class="metric-card card-high">
+            <div class="metric-icon-box">
+                <i class="fa-solid fa-radiation"></i>
+            </div>
+            <div class="metric-info">
+                <span class="metric-label">High Risk (Score 71–100)</span>
+                <span class="metric-value danger-text" id="statHigh">{{ stats.high_risk_count }}</span>
+            </div>
+            <div class="metric-trend danger-text">Critical Threat</div>
+        </div>
+
+        <!-- Medium Risk -->
+        <div class="metric-card card-med">
+            <div class="metric-icon-box">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="metric-info">
+                <span class="metric-label">Medium Risk (Score 31–70)</span>
+                <span class="metric-value warning-text" id="statMed">{{ stats.medium_risk_count }}</span>
+            </div>
+            <div class="metric-trend warning-text">Caution Advised</div>
+        </div>
+
+        <!-- Low Risk -->
+        <div class="metric-card card-low">
+            <div class="metric-icon-box">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="metric-info">
+                <span class="metric-label">Low Risk (Score 0–30)</span>
+                <span class="metric-value safe-text" id="statLow">{{ stats.low_risk_count }}</span>
+            </div>
+            <div class="metric-trend safe-text">Benign Structure</div>
+        </div>
+    </div>
+</section>
+
+<!-- Interactive Threat Analytics Visuals -->
+<section class="charts-section">
+    <div class="charts-grid">
+        <div class="cyber-card chart-card">
+            <div class="card-title-group">
+                <i class="fa-solid fa-chart-donut card-icon cyber-accent"></i>
+                <h3 class="card-title">Threat Classification Ratio</h3>
+            </div>
+            <p class="chart-caption">Proportion of Safe vs Phishing domains assessed</p>
+            <div class="chart-wrapper">
+                <canvas id="classificationChart"></canvas>
+            </div>
+        </div>
+
+        <div class="cyber-card chart-card">
+            <div class="card-title-group">
+                <i class="fa-solid fa-chart-simple card-icon cyber-accent"></i>
+                <h3 class="card-title">Risk Severity Distribution</h3>
+            </div>
+            <p class="chart-caption">Categorization across Low, Medium, and High risk thresholds</p>
+            <div class="chart-wrapper">
+                <canvas id="riskDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Scans Table Section -->
+<section class="recent-scans-section">
+    <div class="cyber-card table-card">
+        <div class="table-header-flex">
+            <div class="card-title-group">
+                <i class="fa-solid fa-clock-rotate-left card-icon cyber-accent"></i>
+                <div>
+                    <h3 class="card-title">Recent URL Investigations</h3>
+                    <p class="card-subtitle">Real-time audit log of recently evaluated web addresses</p>
+                </div>
+            </div>
+            <a href="{{ url_for('history') }}" class="cyber-btn btn-secondary btn-sm" id="btnViewAllHistory">
+                <span>View Full History</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="cyber-table" id="recentScansTable">
+                <thead>
+                    <tr>
+                        <th>Scan ID</th>
+                        <th>Target URL</th>
+                        <th>Domain / Host</th>
+                        <th>Result</th>
+                        <th>Risk Score</th>
+                        <th>Confidence</th>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recent_scans %}
+                        {% for scan in recent_scans %}
+                            <tr>
+                                <td class="font-mono">#{{ scan.id }}</td>
+                                <td class="table-url-cell font-mono" title="{{ scan.url }}">
+                                    <span class="url-truncate">{{ scan.url }}</span>
+                                </td>
+                                <td class="font-mono">{{ scan.domain or 'Unknown' }}</td>
+                                <td>
+                                    {% if scan.result == 'Likely Phishing' %}
+                                        <span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Phishing</span>
+                                    {% elif scan.result == 'Suspicious' %}
+                                        <span class="badge badge-warning"><i class="fa-solid fa-circle-exclamation"></i> Suspicious</span>
+                                    {% else %}
+                                        <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Likely Safe</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="risk-bar-container">
+                                        <div class="risk-bar-fill {% if scan.risk_score > 70 %}fill-danger{% elif scan.risk_score > 30 %}fill-warning{% else %}fill-success{% endif %}" style="width: {{ scan.risk_score }}%;"></div>
+                                        <span class="risk-bar-text">{{ scan.risk_score }}/100</span>
+                                    </div>
+                                </td>
+                                <td>{{ scan.confidence }}%</td>
+                                <td class="text-muted font-mono">{{ scan.scan_timestamp }}</td>
+                                <td>
+                                    <a href="{{ url_for('analyze', url=scan.url) }}" class="action-btn btn-inspect" title="Inspect Forensic Details">
+                                        <i class="fa-solid fa-microscope"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="empty-table-state">
+                                <i class="fa-solid fa-folder-open empty-icon"></i>
+                                <p>No scans recorded yet. Enter a URL above to perform the first security analysis.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function fillQuickUrl(url) {
+        const input = document.getElementById('quickUrlInput');
+        if (input) {
+            input.value = url;
+            input.focus();
+        }
+    }
+
+    // Pass data into global object for script.js Chart.js initialization
+    window.DASHBOARD_DATA = {
+        total: {{ stats.total_scans }},
+        phishing: {{ stats.phishing_count }},
+        safe: {{ stats.safe_count }},
+        high: {{ stats.high_risk_count }},
+        medium: {{ stats.medium_risk_count }},
+        low: {{ stats.low_risk_count }}
+    };
+</script>
+{% endblock %}
