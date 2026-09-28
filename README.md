@@ -111,13 +111,13 @@ SQLite Database (scans.db)  Forensic UI Render (Jinja2 + Chart.js)
 
 ---
 
-## 6. Windows Setup & Installation Instructions
+## 6. Windows Setup & Local Execution Instructions
 
-Follow these exact steps in **Windows PowerShell**:
+Follow these steps in **Windows PowerShell**:
 
 ### Step 1: Open the Project Directory
 ```powershell
-cd C:\Users\vishn\.gemini\antigravity-ide\scratch\phishing-url-detector
+cd Phishing-URL-Detection-System
 ```
 
 ### Step 2: Create a Python Virtual Environment
@@ -136,18 +136,12 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-### Step 5: Train the Machine Learning Model
-```powershell
-python train_model.py
-```
-*Expected Output: Feature extraction summary, Confusion Matrix, Classification Report, and model saved to `models/phishing_model.pkl`.*
-
-### Step 6: Start the Flask Web Application
+### Step 5: Start the Flask Application
 ```powershell
 python app.py
 ```
 
-### Step 7: Open in Your Web Browser
+### Step 6: Open in Your Web Browser
 Navigate to:
 ```
 http://127.0.0.1:5000
@@ -155,15 +149,35 @@ http://127.0.0.1:5000
 
 ---
 
-## 7. Project Structure
+## 7. Cloud Production Deployment (Render)
+
+This application is production-ready for deployment on **Render** (or any WSGI-compatible cloud platform):
+
+- **Platform**: Render Web Service
+- **Runtime**: Python 3.11+
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `gunicorn app:app`
+- **Port Handling**: Configured to dynamically bind to the platform `$PORT` environment variable.
+- **Security**: In production, `FLASK_DEBUG` defaults to `false` and `SECRET_KEY` can be provided via environment variables.
+
+### SQLite Cloud Persistence Limitation Note
+> **Important**: Cloud container platforms (such as Render's free tier) utilize an **ephemeral filesystem**. Any records stored in SQLite (`database/scans.db`) will reset when the instance restarts or redeploys unless a persistent disk is attached. For production systems requiring permanent historical audit retention across container restarts, mount a persistent volume or connect an external managed database (e.g., PostgreSQL).
+
+---
+
+## 8. Project Structure
 
 ```
-phishing-url-detector/
+Phishing-URL-Detection-System/
 │
 ├── app.py                     # Main Flask web application & REST routes
 ├── train_model.py             # Random Forest training and evaluation pipeline
-├── requirements.txt           # Minimal Python dependencies for Windows
-├── README.md                  # Comprehensive academic documentation
+├── test_system.py             # Automated test suite (routes, features, ML, DB)
+├── requirements.txt           # Python dependencies (Flask, scikit-learn, joblib, gunicorn)
+├── Procfile                   # Cloud process manager configuration (gunicorn app:app)
+├── render.yaml                # Render Blueprint deployment definition
+├── .python-version            # Python version specification (3.11.9)
+├── README.md                  # Comprehensive academic & deployment documentation
 │
 ├── dataset/
 │   └── phishing_urls.csv      # Balanced URL training corpus
@@ -184,8 +198,7 @@ phishing-url-detector/
 │   ├── base.html              # Cyber-themed master template with navigation
 │   ├── index.html             # Real-time dashboard with Chart.js analytics
 │   ├── analyze.html           # Deep URL threat analyzer with risk gauge & reasons
-│   ├── history.html           # Forensic scan history with search & deletion
-│   └── about.html             # Academic cybersecurity theory & architecture
+│   └── history.html           # Forensic scan history with search & deletion
 │
 └── static/
     ├── css/

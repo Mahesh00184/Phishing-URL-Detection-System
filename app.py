@@ -8,6 +8,7 @@ import os
 import json
 import re
 import joblib
+from pathlib import Path
 from urllib.parse import urlparse
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 
@@ -29,13 +30,13 @@ from database.db import (
     get_dashboard_stats
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "models", "phishing_model.pkl")
-METADATA_PATH = os.path.join(BASE_DIR, "models", "model_metadata.json")
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "models" / "phishing_model.pkl"
+METADATA_PATH = BASE_DIR / "models" / "model_metadata.json"
 
 app = Flask(__name__)
-app.secret_key = "cybersec-phish-shield-local-secret-key-2026"
-app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.secret_key = os.environ.get("SECRET_KEY", "cybersec-phish-shield-production-key-2026")
+app.config["TEMPLATES_AUTO_RELOAD"] = os.environ.get("FLASK_DEBUG", "false").lower() in ["true", "1"]
 
 # Initialize database
 init_db()
@@ -46,22 +47,22 @@ model_metadata = {}
 
 def load_ml_model():
     global ml_model, model_metadata
-    if os.path.exists(MODEL_PATH):
+    if MODEL_PATH.exists():
         try:
-            ml_model = joblib.load(MODEL_PATH)
-            print("[+] ML Model loaded successfully from:", MODEL_PATH)
+            ml_model = joblib.load(str(MODEL_PATH))
+            print(f"[+] ML Model loaded successfully from: {MODEL_PATH}")
         except Exception as e:
-            print("[!] Error loading ML Model:", e)
+            print(f"[!] Error loading ML Model: {e}")
             ml_model = None
     else:
-        print("[!] Warning: Trained model not found at", MODEL_PATH)
+        print(f"[!] Warning: Trained model not found at {MODEL_PATH}")
 
-    if os.path.exists(METADATA_PATH):
+    if METADATA_PATH.exists():
         try:
             with open(METADATA_PATH, "r", encoding="utf-8") as f:
                 model_metadata = json.load(f)
         except Exception as e:
-            print("[!] Error loading model metadata:", e)
+            print(f"[!] Error loading model metadata: {e}")
 
 load_ml_model()
 
@@ -368,9 +369,11 @@ def server_error(e):
 
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() in ["true", "1"]
     print("\n" + "=" * 65)
-    print("  PHISHING URL DETECTION SYSTEM - LOCAL SERVER")
-    print("  Target: http://127.0.0.1:5000")
-    print("  Environment: Windows PowerShell / Localhost")
+    print("  PHISHING URL DETECTION SYSTEM")
+    print(f"  Target: http://127.0.0.1:{port}")
+    print(f"  Debug Mode: {debug_mode}")
     print("=" * 65 + "\n")
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
