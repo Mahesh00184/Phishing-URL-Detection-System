@@ -49,6 +49,11 @@
     padding: 0;
 }
 
+html {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
 body.cyber-theme {
     background-color: var(--bg-primary);
     color: var(--text-primary);
@@ -59,6 +64,8 @@ body.cyber-theme {
     flex-direction: column;
     position: relative;
     overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
 }
 
 /* Cyber Background Grid and Glow Orbs */
@@ -66,8 +73,8 @@ body.cyber-theme {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     background-image: 
         linear-gradient(to right, rgba(56, 80, 130, 0.08) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(56, 80, 130, 0.08) 1px, transparent 1px);
@@ -280,13 +287,24 @@ body.cyber-theme {
 
 .mobile-toggle {
     display: none;
-    background: none;
+    background: rgba(13, 20, 36, 0.6);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     font-size: 1.25rem;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0.5rem;
     border-radius: var(--radius-sm);
     cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.mobile-toggle:hover {
+    color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+    background: rgba(0, 242, 254, 0.1);
 }
 
 /* Cyber Cards & Glassmorphism */
@@ -299,6 +317,8 @@ body.cyber-theme {
     padding: 1.75rem;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     transition: var(--transition);
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .cyber-card:hover {
@@ -370,16 +390,19 @@ body.cyber-theme {
 }
 
 .hero-title, .page-title {
-    font-size: 2.5rem;
+    font-size: clamp(1.65rem, 4.5vw + 0.5rem, 2.5rem);
     font-weight: 800;
-    line-height: 1.2;
+    line-height: 1.25;
     margin-bottom: 1rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .hero-description, .page-subtitle {
-    font-size: 1.05rem;
+    font-size: clamp(0.925rem, 2vw + 0.2rem, 1.05rem);
     color: var(--text-secondary);
     line-height: 1.7;
+    overflow-wrap: break-word;
 }
 
 /* URL Input & Form */
@@ -404,6 +427,8 @@ body.cyber-theme {
     padding: 0.4rem;
     transition: var(--transition);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .input-glow-group:focus-within {
@@ -415,6 +440,10 @@ body.cyber-theme {
     padding: 0 0.85rem;
     color: var(--accent-cyan);
     font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .cyber-input {
@@ -426,11 +455,14 @@ body.cyber-theme {
     font-family: var(--font-mono);
     font-size: 0.95rem;
     padding: 0.65rem 0.5rem;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .cyber-input::placeholder {
     color: var(--text-muted);
     font-family: var(--font-sans);
+    text-overflow: ellipsis;
 }
 
 /* Buttons */
@@ -449,6 +481,8 @@ body.cyber-theme {
     transition: var(--transition);
     border: none;
     white-space: nowrap;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .btn-primary {
@@ -517,6 +551,7 @@ body.cyber-theme {
     gap: 0.5rem;
     margin-top: 1rem;
     flex-wrap: wrap;
+    max-width: 100%;
 }
 
 .chips-label {
@@ -530,13 +565,17 @@ body.cyber-theme {
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
     font-size: 0.775rem;
-    padding: 0.3rem 0.65rem;
+    padding: 0.4rem 0.75rem;
     border-radius: var(--radius-full);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.4rem;
     transition: var(--transition);
+    max-width: 100%;
+    line-height: 1.35;
+    text-align: left;
+    box-sizing: border-box;
 }
 
 .sample-chip:hover {
@@ -664,6 +703,8 @@ body.cyber-theme {
 .chart-card {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .chart-caption {
@@ -676,6 +717,7 @@ body.cyber-theme {
     position: relative;
     height: 260px;
     width: 100%;
+    min-width: 0;
 }
 
 /* Recent Scans & Tables */
@@ -694,13 +736,24 @@ body.cyber-theme {
 
 .table-responsive {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     width: 100%;
+    max-width: 100%;
+    display: block;
 }
 
 .cyber-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.875rem;
+}
+
+#recentScansTable, #historyTable {
+    min-width: 660px;
+}
+
+.feature-table {
+    min-width: 580px;
 }
 
 .cyber-table th {
@@ -1128,7 +1181,11 @@ body.cyber-theme {
 /* Features Table */
 .features-table-wrapper {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100%;
     margin-top: 1rem;
+    display: block;
 }
 
 .feature-table td:nth-child(4) {
@@ -1143,11 +1200,13 @@ body.cyber-theme {
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
+    max-width: 100%;
 }
 
 .history-search-form {
     flex: 1;
-    min-width: 260px;
+    min-width: min(260px, 100%);
+    max-width: 100%;
 }
 
 .search-input-group {
@@ -1158,11 +1217,18 @@ body.cyber-theme {
     border-radius: var(--radius-md);
     padding: 0.25rem 0.5rem;
     gap: 0.5rem;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.search-input-group .cyber-input {
+    min-width: 0;
 }
 
 .search-icon {
     color: var(--text-muted);
     padding-left: 0.4rem;
+    flex-shrink: 0;
 }
 
 .filter-pills-group {
@@ -1255,8 +1321,8 @@ body.cyber-theme {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     display: none;
     align-items: center;
     justify-content: center;
@@ -1279,9 +1345,9 @@ body.cyber-theme {
 
 .modal-dialog {
     position: relative;
-    width: 100%;
+    width: calc(100% - 2rem);
     max-width: 480px;
-    margin: 1rem;
+    margin: 1rem auto;
     z-index: 1001;
 }
 
@@ -1423,43 +1489,445 @@ body.cyber-theme {
     gap: 0.4rem;
 }
 
-/* Responsive Breakpoints */
-@media (max-width: 992px) {
+/* ==========================================================================
+   Comprehensive Responsive Breakpoints (320px to 1440px)
+   Preserves Desktop Aesthetic While Providing Flawless Mobile Ergonomics
+   ========================================================================== */
+
+/* Tablet & Smaller Desktops (<= 1024px) */
+@media (max-width: 1024px) {
+    .container {
+        padding: 0 1.25rem;
+    }
+    
     .charts-grid {
         grid-template-columns: 1fr;
+        gap: 1.25rem;
     }
 }
 
+/* Tablet Portrait & Large Phones (<= 900px) */
+@media (max-width: 900px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+/* Standard Mobile & Tablet Viewports (<= 768px) */
 @media (max-width: 768px) {
     .mobile-toggle {
-        display: block;
+        display: inline-flex;
     }
+
     .nav-status-badge {
         display: none;
     }
+
     .nav-menu {
         position: absolute;
         top: 72px;
         left: 0;
         width: 100%;
-        background: var(--bg-secondary);
+        background: rgba(13, 20, 36, 0.98);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         flex-direction: column;
-        padding: 1.5rem;
-        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+        gap: 0.75rem;
         border-bottom: 1px solid var(--border-color);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.7);
         display: none;
+        z-index: 150;
     }
+
     .nav-menu.show {
         display: flex;
+        animation: navSlideDown 0.25s ease-out forwards;
     }
-    .hero-title, .page-title {
-        font-size: 1.85rem;
+
+    @keyframes navSlideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
-    .result-header-flex {
+
+    .nav-item {
+        width: 100%;
+    }
+
+    .nav-link {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border-radius: var(--radius-sm);
+        min-height: 46px;
+    }
+
+    .card-header-flex,
+    .table-header-flex {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.75rem;
     }
-    .rf-points-grid {
+
+    .table-header-flex .cyber-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .engine-tag {
+        align-self: flex-start;
+    }
+
+    .result-header-flex {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.25rem;
+    }
+
+    .result-status-block {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .risk-gauge-box {
+        justify-content: flex-start;
+        width: 100%;
+        padding-top: 0.5rem;
+    }
+
+    .history-filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .history-search-form {
+        width: 100%;
+    }
+
+    .clear-history-action {
+        width: 100%;
+    }
+
+    .clear-history-action .cyber-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .cyber-glow-orb {
+        width: 320px;
+        height: 320px;
+        opacity: 0.18;
+    }
+}
+
+/* Mobile Devices: URL Analyzer Card Vertical Stack & Layout (<= 680px) */
+@media (max-width: 680px) {
+    /* CRITICAL FIX: URL Input & Analyze Button NEVER Overlap */
+    .input-glow-group {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        grid-template-rows: auto auto;
+        gap: 0.65rem 0.35rem;
+        padding: 0.65rem;
+        align-items: center;
+    }
+
+    .input-glow-group .input-icon {
+        grid-column: 1;
+        grid-row: 1;
+        padding: 0;
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .input-glow-group .cyber-input {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+        min-width: 0;
+        padding: 0.6rem 0.35rem;
+        font-size: 0.9rem;
+    }
+
+    .input-glow-group .cyber-btn {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        width: 100%;
+        min-height: 48px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        border-radius: var(--radius-sm);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Sample / Test Scenario Buttons */
+    .sample-chips-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        width: 100%;
+    }
+
+    .chips-label {
+        width: 100%;
+        display: block;
+        margin-bottom: 0.2rem;
+        font-size: 0.8rem;
+    }
+
+    .sample-chip {
+        max-width: 100%;
+        white-space: normal;
+        min-height: 38px;
+        padding: 0.45rem 0.8rem;
+        font-size: 0.775rem;
+        line-height: 1.35;
+        box-sizing: border-box;
+    }
+
+    /* Dashboard Metrics: 1 Card Per Row */
+    .metrics-grid {
         grid-template-columns: 1fr;
+        gap: 0.85rem;
+    }
+
+    .metric-card {
+        padding: 1.15rem 1rem;
+    }
+
+    .section-heading {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    /* Recommendations Grid */
+    .recs-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    /* Threat Progress Meter Thresholds */
+    .threat-thresholds {
+        font-size: 0.68rem;
+        gap: 0.25rem;
+    }
+
+    /* History Pagination */
+    .pagination-bar {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.85rem;
+    }
+
+    .pagination-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .page-link {
+        min-height: 38px;
+        min-width: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Footer Stacking */
+    .footer-content {
+        gap: 1.15rem;
+    }
+
+    .footer-links {
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .footer-disclaimer p {
+        font-size: 0.75rem;
+        line-height: 1.5;
+        text-align: center;
+        justify-content: center;
+    }
+}
+
+/* Small-Screen Mobile (<= 480px: iPhone SE, Android 360-414px) */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 0.85rem;
+    }
+
+    .main-content {
+        padding-top: 1.5rem;
+        padding-bottom: 2.5rem;
+    }
+
+    .cyber-card {
+        padding: 1.15rem 0.85rem;
+        border-radius: var(--radius-md);
+    }
+
+    .brand-title {
+        font-size: 1.05rem;
+    }
+
+    .shield-icon-wrapper {
+        width: 36px;
+        height: 36px;
+    }
+
+    .brand-shield {
+        font-size: 1.1rem;
+    }
+
+    .hero-badge {
+        font-size: 0.725rem;
+        padding: 0.3rem 0.75rem;
+        max-width: 100%;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .status-indicator-badge {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 0.85rem;
+    }
+
+    .status-icon {
+        font-size: 1.65rem;
+        flex-shrink: 0;
+    }
+
+    .status-main {
+        font-size: clamp(1.05rem, 4vw, 1.25rem);
+    }
+
+    .status-sub {
+        font-size: 0.7rem;
+    }
+
+    .risk-gauge-box {
+        gap: 1rem;
+    }
+
+    .gauge-circle {
+        width: 82px;
+        height: 82px;
+    }
+
+    .gauge-inner {
+        width: 64px;
+        height: 64px;
+    }
+
+    .gauge-score {
+        font-size: 1.45rem;
+    }
+
+    .gauge-level-label {
+        font-size: 0.95rem;
+    }
+
+    .gauge-confidence {
+        font-size: 0.75rem;
+    }
+
+    .score-bar-header {
+        font-size: 0.78rem;
+    }
+
+    .reason-item {
+        font-size: 0.8rem;
+        padding: 0.55rem 0.65rem;
+    }
+
+    .search-input-group {
+        padding: 0.25rem 0.35rem;
+    }
+
+    .search-input-group .cyber-input {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.35rem;
+    }
+
+    .search-input-group .cyber-btn {
+        padding: 0.4rem 0.65rem;
+        font-size: 0.8rem;
+    }
+
+    .filter-pills-group {
+        gap: 0.3rem;
+    }
+
+    .filter-pill {
+        font-size: 0.725rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .cyber-glow-orb {
+        width: 220px;
+        height: 220px;
+        opacity: 0.12;
+    }
+
+    .modal-dialog {
+        width: calc(100% - 1.25rem);
+        margin: 0.625rem auto;
+    }
+
+    .modal-card {
+        padding: 1.15rem 0.85rem;
+    }
+
+    .modal-footer {
+        flex-direction: column-reverse;
+        gap: 0.5rem;
+    }
+
+    .modal-footer .cyber-btn,
+    .modal-footer form,
+    .modal-footer form button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Extra-Narrow Screens (<= 360px: 320px devices) */
+@media (max-width: 360px) {
+    .container {
+        padding: 0 0.65rem;
+    }
+
+    .cyber-card {
+        padding: 1rem 0.65rem;
+    }
+
+    .brand-subtitle {
+        display: none;
+    }
+
+    .metric-value {
+        font-size: 1.55rem;
+    }
+
+    .sample-chip {
+        width: 100%;
+        justify-content: flex-start;
     }
 }

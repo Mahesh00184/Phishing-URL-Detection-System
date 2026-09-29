@@ -17,12 +17,57 @@ function initMobileNav() {
     const navMenu = document.getElementById('navMenu');
 
     if (toggleBtn && navMenu) {
-        toggleBtn.addEventListener('click', () => {
-            navMenu.classList.toggle('show');
+        function closeNav() {
+            navMenu.classList.remove('show');
+            toggleBtn.setAttribute('aria-expanded', 'false');
             const icon = toggleBtn.querySelector('i');
             if (icon) {
-                icon.classList.toggle('fa-bars');
-                icon.classList.toggle('fa-xmark');
+                icon.classList.remove('fa-xmark');
+                icon.classList.add('fa-bars');
+            }
+        }
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = navMenu.classList.toggle('show');
+            toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            const icon = toggleBtn.querySelector('i');
+            if (icon) {
+                if (isOpen) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-xmark');
+                } else {
+                    icon.classList.remove('fa-xmark');
+                    icon.classList.add('fa-bars');
+                }
+            }
+        });
+
+        // Close menu when tapping any nav link
+        navMenu.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                closeNav();
+            });
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (navMenu.classList.contains('show') && !navMenu.contains(e.target) && !toggleBtn.contains(e.target)) {
+                closeNav();
+            }
+        });
+
+        // Close menu on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navMenu.classList.contains('show')) {
+                closeNav();
+            }
+        });
+
+        // Reset if window resizes to desktop width
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && navMenu.classList.contains('show')) {
+                closeNav();
             }
         });
     }
