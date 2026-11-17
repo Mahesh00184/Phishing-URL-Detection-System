@@ -1,6 +1,6 @@
 # Phishing URL Detection System
 https://phishing-url-detection-system-bwov.onrender.com/
-**Academic Cybersecurity & Machine Learning Web Application (B.Sc. Final-Year Project)**
+**Academic Cybersecurity & Machine Learning Web Application **
 
 ![Platform](https://img.shields.io/badge/Platform-Windows%2011%20%7C%2010-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB.svg?logo=python)
